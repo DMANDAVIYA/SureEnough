@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=70"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sureenough"
+version = "0.1.0"
+description = "Calibrated stop-when-sure EEG-to-image decoding on THINGS-EEG2"
+requires-python = ">=3.14"
+dependencies = [
+  "torch", "torchvision", "timm", "open_clip_torch", "numpy", "scipy",
+  "scikit-learn", "pandas", "pillow", "requests", "python-dotenv", "matplotlib",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+include = ["sureenough*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
