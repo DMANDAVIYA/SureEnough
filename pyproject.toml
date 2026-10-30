@@ -9,7 +9,7 @@ description = "Calibrated stop-when-sure EEG-to-image decoding on THINGS-EEG2"
 requires-python = ">=3.14"
 dependencies = [
   "torch", "torchvision", "timm", "open_clip_torch", "numpy", "scipy",
-  "scikit-learn", "pandas", "pillow", "requests", "python-dotenv", "matplotlib",
+  "scikit-learn", "pandas", "pillow", "requests", "python-dotenv", "matplotlib", "meta-sam-parser",
 ]
 
 [project.optional-dependencies]
