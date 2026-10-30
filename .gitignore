@@ -1,0 +1,28 @@
+# Data and generated outputs live outside git
+/outputs/
+/data/
+*.npy
+*.pt
+*.zip
+
+# Secrets
+.env
+.env.*
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Web
+node_modules/
+web/dist/
+
+# Tooling
+.remember/
+.playwright-mcp/
+.superpowers/
+web/public/data/.tmp/
+research/
+*.egg-info/
