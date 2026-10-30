@@ -4,14 +4,15 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
+from sureenough.meta_api import output_text
 from sureenough.visuals.composite import composite
-from sureenough.visuals.sam import best_mask, cutout, response_text
+from sureenough.visuals.sam import best_mask, cutout
 
 SAM_FIXTURE = Path(__file__).parent / "fixtures" / "api" / "sam.json"
 
 
 def _sam_text() -> str:
-    return response_text(json.loads(SAM_FIXTURE.read_text(encoding="utf-8")))
+    return output_text(json.loads(SAM_FIXTURE.read_text(encoding="utf-8")))
 
 
 def test_best_mask_places_recorded_mask_inside_its_box():
