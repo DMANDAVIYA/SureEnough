@@ -36,7 +36,7 @@ def validation_pairs(subject: int, target: str) -> list[tuple[np.ndarray, np.nda
     return pairs
 
 
-def freeze_config(target: str) -> None:
+def freeze_config(target: str, arch: str) -> None:
     betas = {s: fit_beta(validation_pairs(s, target)) for s in subject_ids()}
     cfg = {
         "K": 20,
@@ -50,6 +50,7 @@ def freeze_config(target: str) -> None:
         "split_sizes": [100, 100],
         "seeds": {"streams": STREAM_SEED, "splits": 7, "validation_concepts": 0, "pinned_split": 0},
         "target": target,
+        "architecture": arch,
         "beta": {str(s): b for s, b in betas.items()},
         "decoder_sha256": {str(s): _sha256(MODELS / f"sub-{s:02d}.pt") for s in subject_ids()},
         "pvalue": "hoeffding-bentkus",
@@ -89,10 +90,11 @@ def generate_streams() -> None:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--freeze", metavar="TARGET")
+    ap.add_argument("--arch", choices=("mlp", "tsconv"), default="mlp")
     ap.add_argument("--streams", action="store_true")
     args = ap.parse_args()
     if args.freeze:
-        freeze_config(args.freeze)
+        freeze_config(args.freeze, args.arch)
     if args.streams:
         generate_streams()
 
