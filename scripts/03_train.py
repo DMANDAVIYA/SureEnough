@@ -3,17 +3,19 @@ import json
 import time
 
 import numpy as np
+import torch
 
 from sureenough.data.concepts import load_concepts
 from sureenough.features.targets import load_targets, target_names
-from sureenough.models.encoder import Standardizer, encode, train_mlp
+from sureenough.models.encoder import MLPEncoder, Standardizer, encode, train_contrastive
 from sureenough.models.layout import validation_layout
 from sureenough.models.ridge import fit_ridge
 from sureenough.models.store import save_decoder
+from sureenough.models.tsconv import TSConvEncoder
 from sureenough.models.validation import val_top1
 from sureenough.paths import DERIVED, OUTPUTS, subject_ids
 
-RIDGE_ALPHAS = (1e3, 1e4, 1e5, 1e6)
+RIDGE_ALPHAS = (10.0, 100.0, 1e3, 1e4)
 GATE1_THRESHOLD = 0.15
 GATE1_MIN_SUBJECTS = 8
 
@@ -36,9 +38,15 @@ def ridge_top1(z: np.ndarray, y: np.ndarray, train_idx: np.ndarray, galleries: n
     return max(val_top1(fit_ridge(x, y[train_idx], a).predict, z, y, galleries) for a in RIDGE_ALPHAS)
 
 
-def mlp_fit(z: np.ndarray, y: np.ndarray, train_idx: np.ndarray, galleries: np.ndarray, seed: int):
-    net = train_mlp(z[train_idx].reshape(len(train_idx), 4, -1), y[train_idx], seed=seed)
-    return net, val_top1(lambda x: encode(net, x), z, y, galleries)
+def build(arch: str, in_dim: int, out_dim: int):
+    return MLPEncoder(in_dim, out_dim) if arch == "mlp" else TSConvEncoder(out_dim)
+
+
+def fit_encoder(z: np.ndarray, y: np.ndarray, train_idx: np.ndarray, galleries: np.ndarray, seed: int, arch: str = "mlp"):
+    x = z[train_idx].reshape(len(train_idx), 4, -1)
+    torch.manual_seed(seed)
+    net = train_contrastive(build(arch, x.shape[-1], y.shape[1]), x, y[train_idx], seed=seed)
+    return net, val_top1(lambda v: encode(net, v), z, y, galleries)
 
 
 def sweep(subjects: list[int]) -> dict:
@@ -57,13 +65,13 @@ def sweep(subjects: list[int]) -> dict:
         mlp[name] = {}
         for s in subjects:
             _, z = standardized_eeg(s, train_idx)
-            mlp[name][s] = mlp_fit(z, targets[name], train_idx, galleries, seed=0)[1]
+            mlp[name][s] = fit_encoder(z, targets[name], train_idx, galleries, seed=0)[1]
             print(f"sub-{s:02d} mlp {name}: {mlp[name][s]:.3f}", flush=True)
     chosen = max(mlp, key=lambda n: (np.mean(list(mlp[n].values())), n == "final"))
     return {"subjects": subjects, "ridge": ridge, "mlp": mlp, "chosen": chosen}
 
 
-def train_all(target: str, seeds: list[int]) -> dict:
+def train_all(target: str, seeds: list[int], arch: str) -> dict:
     train_idx, galleries = layout()
     y = load_targets(target)[0]
     report = {}
@@ -71,7 +79,7 @@ def train_all(target: str, seeds: list[int]) -> dict:
         standardizer, z = standardized_eeg(s, train_idx)
         for seed in seeds:
             t0 = time.time()
-            net, top1 = mlp_fit(z, y, train_idx, galleries, seed)
+            net, top1 = fit_encoder(z, y, train_idx, galleries, seed, arch)
             suffix = "" if seed == 0 else f"_seed{seed}"
             save_decoder(OUTPUTS / "models" / f"sub-{s:02d}{suffix}.pt", net, standardizer, target, seed)
             report.setdefault(s, {})[seed] = top1
@@ -87,6 +95,7 @@ def main() -> None:
     ap.add_argument("--all", action="store_true")
     ap.add_argument("--target")
     ap.add_argument("--seeds", type=int, nargs="+", default=[0])
+    ap.add_argument("--arch", choices=("mlp", "tsconv"), default="mlp")
     args = ap.parse_args()
     OUTPUTS.mkdir(exist_ok=True)
     if args.sweep:
@@ -95,17 +104,18 @@ def main() -> None:
         print("chosen target:", result["chosen"])
     if args.all:
         target = args.target or json.loads((OUTPUTS / "sweep.json").read_text())["chosen"]
-        report = train_all(target, args.seeds)
+        report = train_all(target, args.seeds, args.arch)
         passed = sum(report[s][0] >= GATE1_THRESHOLD for s in report)
         gate1 = {
             "target": target,
+            "architecture": args.arch,
             "threshold": GATE1_THRESHOLD,
             "per_subject": report,
             "subjects_passing": passed,
             "passed": passed >= GATE1_MIN_SUBJECTS,
         }
-        (OUTPUTS / f"gate1_{target}.json").write_text(json.dumps(gate1, indent=1))
-        print(f"Gate 1 ({target}): {passed}/10 subjects >= {GATE1_THRESHOLD}")
+        (OUTPUTS / f"gate1_{target}_{args.arch}.json").write_text(json.dumps(gate1, indent=1))
+        print(f"Gate 1 ({target}, {args.arch}): {passed}/10 subjects >= {GATE1_THRESHOLD}")
 
 
 if __name__ == "__main__":

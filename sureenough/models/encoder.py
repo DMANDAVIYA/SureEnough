@@ -25,6 +25,7 @@ class Standardizer:
 class MLPEncoder(nn.Module):
     def __init__(self, in_dim: int, out_dim: int, hidden: int = 2048, p_drop: float = 0.3):
         super().__init__()
+        self.config = {"in_dim": in_dim, "out_dim": out_dim, "hidden": hidden, "p_drop": p_drop}
         self.net = nn.Sequential(
             nn.Linear(in_dim, hidden),
             nn.LayerNorm(hidden),
@@ -45,7 +46,8 @@ def sample_repeat_average(x: torch.Tensor, gen: torch.Generator) -> tuple[torch.
     return (x * mask[..., None]).sum(dim=1) / counts[:, None].to(x.dtype), counts
 
 
-def train_mlp(
+def train_contrastive(
+    model: nn.Module,
     x_rep: np.ndarray,
     y: np.ndarray,
     epochs: int = 40,
@@ -53,14 +55,10 @@ def train_mlp(
     lr: float = 1e-3,
     wd: float = 0.01,
     seed: int = 0,
-    hidden: int = 2048,
-    p_drop: float = 0.3,
-) -> MLPEncoder:
-    torch.manual_seed(seed)
+) -> nn.Module:
     gen = torch.Generator().manual_seed(seed)
     x = torch.from_numpy(np.ascontiguousarray(x_rep, dtype=np.float32))
     targets = F.normalize(torch.from_numpy(np.asarray(y, dtype=np.float32)), dim=1)
-    model = MLPEncoder(x.shape[-1], targets.shape[1], hidden, p_drop)
     logit_scale = nn.Parameter(torch.tensor(math.log(1 / 0.07)))
     opt = torch.optim.AdamW([*model.parameters(), logit_scale], lr=lr, weight_decay=wd)
     steps = epochs * math.ceil(len(x) / batch)
@@ -79,8 +77,24 @@ def train_mlp(
     return model.eval()
 
 
+def train_mlp(
+    x_rep: np.ndarray,
+    y: np.ndarray,
+    epochs: int = 40,
+    batch: int = 512,
+    lr: float = 1e-3,
+    wd: float = 0.01,
+    seed: int = 0,
+    hidden: int = 2048,
+    p_drop: float = 0.3,
+) -> MLPEncoder:
+    torch.manual_seed(seed)
+    model = MLPEncoder(x_rep.shape[-1], np.asarray(y).shape[1], hidden, p_drop)
+    return train_contrastive(model, x_rep, y, epochs, batch, lr, wd, seed)
+
+
 @torch.no_grad()
-def encode(model: MLPEncoder, x: np.ndarray, chunk: int = 4096) -> np.ndarray:
+def encode(model: nn.Module, x: np.ndarray, chunk: int = 4096) -> np.ndarray:
     model.eval()
     flat = torch.from_numpy(np.ascontiguousarray(x, dtype=np.float32).reshape(len(x), -1))
     return torch.cat([model(part) for part in flat.split(chunk)]).numpy()

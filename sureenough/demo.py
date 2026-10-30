@@ -10,8 +10,8 @@ N_DEMO_SUBJECTS = 2
 
 
 def demo_subjects(n: int = N_DEMO_SUBJECTS) -> list[int]:
-    target = load_frozen()["target"]
-    gate = json.loads((OUTPUTS / f"gate1_{target}.json").read_text())
+    cfg = load_frozen()
+    gate = json.loads((OUTPUTS / f"gate1_{cfg['target']}_{cfg['architecture']}.json").read_text())
     scores = {int(s): v["0"] for s, v in gate["per_subject"].items()}
     return sorted(scores, key=scores.get, reverse=True)[:n]
 
