@@ -1,0 +1,15 @@
+{
+ "created": 1793394582,
+ "data": [
+  {
+   "b64_json": "<omitted>"
+  }
+ ],
+ "output_format": "webp",
+ "background": "opaque",
+ "usage": {
+  "input_tokens": 4856,
+  "output_tokens": 661,
+  "total_tokens": 5517
+ }
+}
