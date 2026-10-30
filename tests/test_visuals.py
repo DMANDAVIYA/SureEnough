@@ -6,7 +6,7 @@ from PIL import Image
 
 from sureenough.meta_api import output_text
 from sureenough.visuals.composite import composite
-from sureenough.visuals.sam import best_mask, cutout
+from sureenough.visuals.sam import cutout, object_mask
 
 SAM_FIXTURE = Path(__file__).parent / "fixtures" / "api" / "sam.json"
 
@@ -15,16 +15,16 @@ def _sam_text() -> str:
     return output_text(json.loads(SAM_FIXTURE.read_text(encoding="utf-8")))
 
 
-def test_best_mask_places_recorded_mask_inside_its_box():
-    mask = best_mask(_sam_text(), width=768, height=768)
+def test_object_mask_places_recorded_mask_inside_its_box():
+    mask = object_mask(_sam_text(), width=768, height=768)
     assert mask.shape == (768, 768) and mask.dtype == bool
     ys, xs = np.nonzero(mask)
     assert xs.min() >= 85 and xs.max() <= 653 and ys.min() >= 126 and ys.max() <= 564
     assert 0.05 < mask.mean() < 0.5
 
 
-def test_best_mask_is_none_without_records():
-    assert best_mask("", width=10, height=10) is None
+def test_object_mask_is_none_without_records():
+    assert object_mask("", width=10, height=10) is None
 
 
 def test_cutout_is_transparent_outside_mask_and_cropped():

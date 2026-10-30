@@ -12,11 +12,7 @@ def _mask_records(text: str) -> list:
     return [record for record in result.records if record.kind == "mask"]
 
 
-def best_mask(text: str, width: int, height: int) -> np.ndarray | None:
-    records = _mask_records(text)
-    if not records:
-        return None
-    record = max(records, key=lambda r: r.confidence or 0.0)
+def _placed(record, width: int, height: int) -> np.ndarray:
     m = record.mask
     raster = np.frombuffer(sam.decode_mask_to_raster(m), dtype=np.uint8).reshape(m.height, m.width).astype(bool)
     top, left = record.bounds.top, record.bounds.left
@@ -24,6 +20,15 @@ def best_mask(text: str, width: int, height: int) -> np.ndarray | None:
     frame = np.zeros((height, width), dtype=bool)
     frame[top:top + rows, left:left + cols] = raster[:rows, :cols]
     return frame
+
+
+def object_mask(text: str, width: int, height: int, relative_confidence: float = 0.5) -> np.ndarray | None:
+    records = _mask_records(text)
+    if not records:
+        return None
+    floor = relative_confidence * max(r.confidence or 0.0 for r in records)
+    confident = [r for r in records if (r.confidence or 0.0) >= floor]
+    return np.logical_or.reduce([_placed(r, width, height) for r in confident])
 
 
 def cutout(img: Image.Image, mask: np.ndarray, pad: float = 0.08) -> Image.Image:
