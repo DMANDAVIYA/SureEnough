@@ -124,6 +124,12 @@ def spark_payload(system: str, user: str) -> dict:
     return {"model": SPARK, "instructions": system, "input": user, "stream": False, "store": False}
 
 
+def spark_vision_payload(system: str, user: str, image_data_url: str) -> dict:
+    content = [{"type": "input_text", "text": user}, {"type": "input_image", "image_url": image_data_url}]
+    return {"model": SPARK, "instructions": system, "input": [{"type": "message", "role": "user", "content": content}],
+            "stream": False, "store": False}
+
+
 def image_edit_payload(prompt: str, image_data_urls: list[str], n: int = 3) -> dict:
     if not 1 <= len(image_data_urls) <= 10:
         raise ValueError("Muse Image takes 1-10 reference images")
