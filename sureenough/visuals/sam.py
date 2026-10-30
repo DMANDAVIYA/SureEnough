@@ -3,15 +3,6 @@ import numpy as np
 from PIL import Image
 
 
-def response_text(body: dict) -> str:
-    return "".join(
-        part.get("text", "")
-        for item in body.get("output", [])
-        for part in item.get("content") or []
-        if part.get("type") == "output_text"
-    )
-
-
 def _mask_records(text: str) -> list:
     if not text.strip():
         return []

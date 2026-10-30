@@ -130,3 +130,12 @@ def image_edit_payload(prompt: str, image_data_urls: list[str], n: int = 3) -> d
     return {"model": IMAGE, "prompt": prompt, "images": [{"image_url": u} for u in image_data_urls],
             "n": n, "size": "1024x1024", "output_format": "webp", "reasoning_strength": "low",
             "tool_enablement": {"enable_image_search": False, "enable_web_search": False, "enable_shell": False}}
+
+
+def output_text(body: dict) -> str:
+    return "".join(
+        part.get("text", "")
+        for item in body.get("output", [])
+        for part in item.get("content") or []
+        if part.get("type") == "output_text"
+    )
