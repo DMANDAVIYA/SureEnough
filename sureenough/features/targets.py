@@ -26,6 +26,10 @@ def _unit(a: np.ndarray) -> np.ndarray:
 
 
 def load_targets(name: str) -> tuple[np.ndarray, np.ndarray]:
+    if name == "clip_h":
+        from sureenough.features.clip_h import load_clip_h
+
+        return load_clip_h()
     parsed = parse_target_name(name)
     splits = []
     for split in ("train", "test"):
