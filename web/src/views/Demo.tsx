@@ -80,8 +80,8 @@ export default function Demo() {
       </div>
       {partialMuse && (
         <p className="panel-note">
-          Replays cover all {manifest.subjects.length} people. Muse Spark words and Muse Image pictures cover people{' '}
-          {manifest.demo_subjects.join(' and ')}.
+          Replays cover all {manifest.subjects.length} people. Muse Spark words{manifest.muse_image ? ' and Muse Image pictures' : ''}{' '}
+          cover people {manifest.demo_subjects.join(' and ')}.
         </p>
       )}
       {selection && (
