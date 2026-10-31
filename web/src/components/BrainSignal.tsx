@@ -19,7 +19,7 @@ export default function BrainSignal({ first, current, repeat, budget, stopped }:
   return (
     <section className="panel signal" aria-label="Brain signal">
       <h2>Brain signal</h2>
-      <p className="panel-note">The averaged response at the back of the head. Noise cancels as repeats add up.</p>
+      <p className="panel-note">The averaged response at the back of the head, from lab EEG (17 channels). Noise cancels as repeats add up.</p>
       <figure className="paper">
         <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={current ? `Average of ${repeat} repeats` : 'No replay yet'}>
           <defs>
