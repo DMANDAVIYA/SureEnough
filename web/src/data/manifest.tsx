@@ -10,8 +10,7 @@ export function ManifestProvider({ children }: { children: ReactNode }) {
   if (manifest instanceof Error) {
     return (
       <p className="status" role="alert">
-        The replay data did not load ({manifest.message}). Export it into web/public/data, or add ?mock to the address to
-        use the synthetic bundle.
+        The replay data did not load ({manifest.message}). Please reload the page in a moment.
       </p>
     );
   }
