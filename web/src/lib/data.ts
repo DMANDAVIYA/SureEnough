@@ -1,6 +1,11 @@
 import type { Example, Manifest, Table } from '../data/schema';
 
-export const dataUrl = (path: string): string => import.meta.env.BASE_URL + 'data/' + path;
+const MOCK_DIR = 'data/mock';
+
+const dataDir = (): string =>
+  import.meta.env.VITE_DATA_DIR || (new URLSearchParams(globalThis.location?.search).has('mock') ? MOCK_DIR : 'data');
+
+export const dataUrl = (path: string): string => `${import.meta.env.BASE_URL}${dataDir()}/${path}`;
 
 const pad = (n: number, width: number): string => String(n).padStart(width, '0');
 

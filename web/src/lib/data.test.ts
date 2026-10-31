@@ -13,6 +13,18 @@ describe('dataUrl', () => {
     expect(dataUrl('manifest.json').endsWith('/SureEnough/data/manifest.json')).toBe(true);
   });
 
+  it('switches to the mock bundle when the page URL has ?mock', () => {
+    vi.stubEnv('BASE_URL', '/SureEnough/');
+    vi.stubGlobal('location', { search: '?mock' });
+    expect(dataUrl('manifest.json')).toBe('/SureEnough/data/mock/manifest.json');
+  });
+
+  it('reads from VITE_DATA_DIR when it is set', () => {
+    vi.stubEnv('BASE_URL', '/SureEnough/');
+    vi.stubEnv('VITE_DATA_DIR', 'data/mock');
+    expect(dataUrl('tables/sub-01.json')).toBe('/SureEnough/data/mock/tables/sub-01.json');
+  });
+
   it('is built with the /SureEnough/ base', () => {
     expect(config.base).toBe('/SureEnough/');
   });
