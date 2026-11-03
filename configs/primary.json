@@ -1,0 +1,52 @@
+{
+ "K": 20,
+ "K_secondary": 80,
+ "R": 10,
+ "alpha": 0.2,
+ "architecture": "tsconv",
+ "beta": {
+  "1": 2.1330212350979543,
+  "10": 2.446351475855169,
+  "2": 1.9628868835295687,
+  "3": 2.073016398462134,
+  "4": 2.0482381898224546,
+  "5": 1.9378855207811752,
+  "6": 2.279460267926549,
+  "7": 2.0920046102782384,
+  "8": 2.340831232041981,
+  "9": 1.98584905127683
+ },
+ "decoder_sha256": {
+  "1": "3d31b33ec2febd70c150b3891a1d1749c3b920dfe57e5d4e68c0f2c0bf736c42",
+  "10": "80d07f91368fff754c687e0f4f198410fb24ddf87b2a4733ff5c4320701834ae",
+  "2": "9e96a24b7dd97b84c3749a1306cd230783077adfac9881e26494509fba63893f",
+  "3": "e9c2e4c85e1d759956f580af78a133f41ac65507f9bb257f02f867bb47e1657d",
+  "4": "20a7554c995306440f03029aa9265dd95b6b5288255080c0b86407698c756190",
+  "5": "242f6813be6842daf2f6aed0abe59dcbdc28295282dee55a1cdeda690e94cdf0",
+  "6": "fd1dc2c6efd2ae31cec5065d5340d5905c7d0e7609b54c0cd0913a5dc9efb035",
+  "7": "19228dffea61d75f6d61bd00cee61010e7885c07fa92557f039e436f7928d6c3",
+  "8": "0cdfe096cc67128027f3df4c8c3f6ceea588ac6be5549990807077c5bf644dc7",
+  "9": "df73a8dcd874ae40169964cb171f94f6f1adf2b1c201bc101e4e68d767696663"
+ },
+ "delta": 0.1,
+ "lambda_grid": {
+  "count": 500,
+  "start": 1.0,
+  "step": -0.002
+ },
+ "m": 3,
+ "n_splits": 1000,
+ "pvalue": "hoeffding-bentkus",
+ "seeds": {
+  "pinned_split": 0,
+  "splits": 7,
+  "streams": 20261030,
+  "validation_concepts": 0
+ },
+ "selection": "fixed sequence from lambda=1 downward; deploy the last rejection before the first non-rejection",
+ "split_sizes": [
+  100,
+  100
+ ],
+ "target": "L7_mean"
+}

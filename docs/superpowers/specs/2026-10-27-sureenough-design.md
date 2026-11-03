@@ -422,3 +422,20 @@ LTT 2110.01052 · CRC 2208.02814 · Ringel et al. 2402.00857 · COINS 2609.07112
 PMC10991023) · ATM 2403.07721 · Perceptogram 2404.01250 · NEAR 2608.19128 · SATTC 2603.20738 · Shallow
 Alignment 2601.21948 · Benchetrit, Banville & King 2310.19812 · Perception Encoder 2504.13181 · SAM 3
 2511.16719 · Meta Geographic Use Policy (dev.meta.ai/legal/geographic-use-policy).
+
+## 16. Amendment A1 (Oct 30, 2026, before any test-split calibration)
+
+Decoder choices made on the concept-disjoint validation split only (§6.1, §6.3). No test data was used.
+
+- **Gate 1 bar context.** A plain ridge decoder reached about 4% top-1 at 4 repeats. The 15% bar was set from 80-repeat preprint numbers, so the §6.3 fallbacks were followed in order.
+- **Architecture: temporal-spatial conv encoder** (NICE/ATM style, the "ATM recipe" fallback).
+  - Subject 1, CLIP-H targets, 4 repeats: 14.8% top-1, against 12.9% for the MLP and 3.7% for ridge.
+- **Target: Perception Encoder block 7, mean of patch tokens.**
+  - The ridge sweep over the final embedding and blocks 6–11 (CLS and mean-patch) used subjects 1–3.
+  - Mean top-1 at 4 repeats: block 7 mean 8.5%, PE final 4.1%, CLIP-H 3.4%.
+  - The conv encoder on block 7 mean reached 24.5% for subject 1.
+  - Open-vocabulary naming uses a ridge map from block 7 to the final 1,024-d space, fitted on training images.
+- **PE vs CLIP-H line (§6.2):** reported with the same linear decoder on validation images at 4 repeats, 8.5% vs 3.4%.
+- **SAM cutouts (§6.9):** masks are the union of confident records. When SAM returns nothing for the plain noun, Muse Spark describes the CC0 photo in two to four words and SAM segments that phrase. Plain-tile fallbacks: 7 of 200.
+- **Gate 1 (validation, 4 repeats):** 10 of 10 subjects at or above 15%; conv encoder top-1 19.7–32.7% (mean 25.2%), ridge on the same target 6.3–13.6% (mean 9.3%).
+- **Unchanged:** K = 20, α = 0.2, δ = 0.1, m = 3, R = 10, the λ grid and order, Hoeffding–Bentkus fixed-sequence LTT, the splits, the seeds, and every hypothesis and test.
