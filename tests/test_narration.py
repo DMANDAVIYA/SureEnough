@@ -2,10 +2,10 @@ import numpy as np
 
 from sureenough.meta_api import output_text
 from sureenough.narrate.naming import pe_guess
-from sureenough.narrate.spark import narrate
+from sureenough.narrate.spark import narrate, settle
 from sureenough.visuals.impression import impression_prompt
 
-VOCAB = {"wolf", "husky", "coyote", "dog", "animal", "sofa"}
+VOCAB = {"wolf", "husky", "coyote", "dog", "animal", "sofa", "saw"}
 
 
 class FakeClient:
@@ -18,8 +18,8 @@ class FakeClient:
         return {"output": [{"type": "message", "content": [{"type": "output_text", "text": self.reply}]}]}
 
 
-def _claim(kind, text, category=None):
-    return {"kind": kind, "text": text, "category": category, "members": [0, 1, 2]}
+def _claim(kind, text, category=None, size=3):
+    return {"kind": kind, "text": text, "category": category, "members": list(range(size))}
 
 
 def test_output_text_joins_message_parts():
@@ -59,3 +59,20 @@ def test_impression_prompt_names_only_the_claim():
 def test_pe_guess_picks_closest_name():
     text = np.eye(3, dtype=np.float32)
     assert pe_guess(np.array([0.1, 0.9, 0.2]), text, ["wolf", "sofa", "dog"]) == "sofa"
+
+
+def test_the_verb_saw_is_not_read_as_the_tool():
+    client = FakeClient("You saw a wolf, a husky or a coyote.")
+    out = narrate(client, _claim("list", "It's one of these 3."), ["wolf", "husky", "coyote"], VOCAB)
+    assert out["faithful"]
+
+
+def test_naming_part_of_a_cut_short_list_falls_back():
+    client = FakeClient("It is a wolf, a husky or a coyote.")
+    out = narrate(client, _claim("list", "It's one of these 5.", size=5), ["wolf", "husky", "coyote"], VOCAB)
+    assert not out["faithful"] and out["text"] == "It's one of these 5."
+
+
+def test_cut_short_category_claim_may_still_name_its_category():
+    text, ok = settle("It's an animal.", _claim("category", "It's an animal.", "animal", size=5), ["wolf", "husky", "coyote"], VOCAB)
+    assert ok and text == "It's an animal."
