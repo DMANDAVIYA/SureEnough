@@ -92,6 +92,17 @@ describe('findingsOf', () => {
     expect(findingsOf(kept).h1).toMatchObject({ holds: true, parity: false });
   });
 
+  it('reports the hedged-picture test only when the export has it', () => {
+    expect(findingsOf(results).h5a).toBeNull();
+    const withH5a = {
+      ...results,
+      pvalues: { ...results.pvalues, H5a: 0.002 },
+      holm: { ...results.holm, H5a: true },
+      h5a: { n: 101, p: 0.002, h5b_means: { composite_hedged: 0.063, composite_top1: 0.028, composite_answer_key: 0.58 } },
+    };
+    expect(findingsOf(withH5a).h5a).toEqual({ n: 101, p: 0.002, holds: true, hedged: 0.063, top1: 0.028, truth: 0.58 });
+  });
+
   it('passes the PE vs CLIP-H line through only when the export has it', () => {
     expect(findingsOf(results).peVsClip).toBeNull();
     expect(findingsOf({ ...results, pe_vs_clip: { pe: 0.31, clip: 0.25 } }).peVsClip).toEqual({ pe: 0.31, clip: 0.25 });

@@ -20,6 +20,7 @@ export interface Findings {
   h2a: { cpUpper: number; conservativeness: number };
   h2b: { count: number; p: number; holds: boolean; naiveRisk: number | null };
   bestGuessRisk: number | null;
+  h5a: { n: number; p: number; holds: boolean; hedged: number; top1: number; truth: number } | null;
   peVsClip: { pe: number; clip: number } | null;
 }
 
@@ -55,6 +56,16 @@ export function findingsOf(results: Results): Findings {
     },
     h2b: { count: results.h2b_count, p: results.pvalues.H2b, holds: results.holm.H2b, naiveRisk: meanOf(people, 'naive_pop_risk') },
     bestGuessRisk: meanOf(people, 'uncalibrated_risk'),
+    h5a: results.h5a
+      ? {
+          n: results.h5a.n,
+          p: results.h5a.p,
+          holds: results.holm.H5a ?? false,
+          hedged: results.h5a.h5b_means.composite_hedged,
+          top1: results.h5a.h5b_means.composite_top1,
+          truth: results.h5a.h5b_means.composite_answer_key,
+        }
+      : null,
     peVsClip: results.pe_vs_clip ?? null,
   };
 }
