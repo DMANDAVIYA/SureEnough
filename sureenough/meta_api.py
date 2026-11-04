@@ -33,6 +33,7 @@ class MetaAPIError(RuntimeError):
     def __init__(self, status: int, text: str):
         super().__init__(f"HTTP {status}: {text[:500]}")
         self.status = status
+        self.policy_refusal = status == 400 and "content_policy_violation" in text
 
 
 class MetaClient:

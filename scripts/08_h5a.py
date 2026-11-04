@@ -39,11 +39,11 @@ def score_subject(model, zf, meta, concepts, cfg, subject: int, sims: dict) -> N
         if conds["top1"][0][0] == image:
             continue
         truth = dino_embed(model, [stimulus(zf, meta, image)])[0]
+        files = {cond: sorted((IMPRESSIONS / f"sub-{subject:02d}").glob(f"{image:03d}_{cond}_*.webp")) for cond in CONDITIONS}
         for cond in CONDITIONS:
             sims[f"composite_{cond}"].append(float(dino_embed(model, [composite_of(concepts, *conds[cond])])[0] @ truth))
-            files = sorted((IMPRESSIONS / f"sub-{subject:02d}").glob(f"{image:03d}_{cond}_*.webp"))
-            if files:
-                sims[f"impression_{cond}"].append(float((dino_embed(model, [Image.open(f) for f in files]) @ truth).mean()))
+            if all(files.values()):
+                sims[f"impression_{cond}"].append(float((dino_embed(model, [Image.open(f) for f in files[cond]]) @ truth).mean()))
 
 
 def main() -> None:

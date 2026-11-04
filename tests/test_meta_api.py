@@ -166,3 +166,18 @@ def test_recorded_fixtures_are_key_free():
         text = f.read_text(encoding="utf-8")
         json.loads(text)
         assert "LLM_" not in text and "Bearer" not in text, f.name
+
+
+def test_content_policy_refusal_is_flagged(client, fake):
+    fake.queue.append(_resp(400, {"error": {"code": "content_policy_violation", "message": "filtered"}}))
+    with pytest.raises(m.MetaAPIError) as refused:
+        client.image_edit(m.image_edit_payload("a knife", [PNG], n=1), est_cost=m.COST_IMAGE)
+    assert refused.value.policy_refusal
+    assert client.spent() == 0.0
+
+
+def test_other_client_errors_are_not_policy_refusals(client, fake):
+    fake.queue.append(_resp(400, {"error": {"code": "invalid_value", "message": "bad"}}))
+    with pytest.raises(m.MetaAPIError) as failed:
+        client.image_edit(m.image_edit_payload("a dog", [PNG], n=1), est_cost=m.COST_IMAGE)
+    assert not failed.value.policy_refusal
