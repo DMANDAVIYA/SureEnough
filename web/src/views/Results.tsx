@@ -15,6 +15,7 @@ const STRICTNESS = [0.1, 0.2, 0.3];
 const percent = (x: number): string => `${Math.round(x * 100)}%`;
 const pValue = (p: number): string => (p < 0.001 ? '< 0.001' : `= ${p.toFixed(3)}`);
 const outOfTen = (alpha: number): number => Math.round(alpha * 10);
+const tenths = (x: number): string => `${(x * 100).toFixed(1)}%`;
 
 function RiskTable({ rows }: { rows: RiskRow[] }) {
   return (
@@ -60,7 +61,7 @@ export default function Results() {
     );
   }, [tables, splits, alpha, risks, manifest.delta]);
   const rows = risks?.map((risk, k) => ({ label: `Person ${manifest.subjects[k]}`, ...risk }));
-  const { h1, h2a, h2b, bestGuessRisk: bestGuess, peVsClip: pe } = useMemo(() => findingsOf(manifest.results), [manifest]);
+  const { h1, h2a, h2b, h5a, bestGuessRisk: bestGuess, peVsClip: pe } = useMemo(() => findingsOf(manifest.results), [manifest]);
 
   return (
     <div className="results">
@@ -110,7 +111,7 @@ export default function Results() {
           </li>
           <li>
             The naive repeated look went over the promise for {h2b.count} of {manifest.subjects.length} people
-            {h2b.naiveRisk === null ? '' : `, averaging ${inTen(h2b.naiveRisk)} wrong against a promise of ${outOfTen(manifest.alpha)} in 10`}{' '}
+            {h2b.naiveRisk === null ? '' : `, averaging ${tenths(h2b.naiveRisk)} wrong against a promise of ${percent(manifest.alpha)}`}{' '}
             (sign test p {pValue(h2b.p)}
             {h2b.holds ? '' : ', not significant after Holm correction'}).
           </li>
@@ -125,6 +126,14 @@ export default function Results() {
             answer size
             (pre-registered target 0.7× or less, Wilcoxon p {pValue(h1.p)}).{h1.holds ? '' : ' The target was not met.'}
           </li>
+          {h5a && (
+            <li>
+              When the top pick was wrong ({h5a.n} images, people {manifest.demo_subjects.join(' and ')}), the blend of the hedged
+              answer looked more like the true object than the blend of the top pick alone (DINOv2 similarity{' '}
+              {h5a.hedged.toFixed(3)} vs {h5a.top1.toFixed(3)}; the true object's own cutout scores {h5a.truth.toFixed(2)}; Wilcoxon p{' '}
+              {pValue(h5a.p)}{h5a.holds ? ', significant after Holm correction' : ', not significant after Holm correction'}).
+            </li>
+          )}
           {pe && (
             <li>
               With the same linear decoder on held-out validation images, decoding into Perception Encoder space put the

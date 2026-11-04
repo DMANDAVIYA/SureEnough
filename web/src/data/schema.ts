@@ -39,8 +39,9 @@ export interface SubjectSummary {
 
 export interface Results {
   per_subject: Record<string, SubjectSummary>;
-  pvalues: { H1: number; H2b: number };
-  holm: { H1: boolean; H2b: boolean };
+  pvalues: { H1: number; H2b: number; H5a?: number };
+  holm: { H1: boolean; H2b: boolean; H5a?: boolean };
+  h5a?: { n: number; p: number; h5b_means: Record<string, number> };
   h2b_count: number;
   pe_vs_clip?: { pe: number; clip: number };
 }

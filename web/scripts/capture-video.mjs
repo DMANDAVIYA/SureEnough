@@ -1,9 +1,8 @@
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { chromium } from '@playwright/test';
-
 process.env.PLAYWRIGHT_BROWSERS_PATH ??= '0';
+const { chromium } = await import('@playwright/test');
 
 const BASE = process.argv[2] ?? 'http://localhost:4175/SureEnough/';
 const OUT = resolve(process.argv[3] ?? '../video/out');
@@ -15,11 +14,12 @@ const BUDGET = 20;
 const OVERLAY = `
   const card = document.createElement('div');
   card.id = 'cap-card';
-  card.style.cssText = 'position:fixed;inset:0;z-index:99999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:28px;background:#0d1117;color:#f0f3f6;font:600 64px/1.2 system-ui;text-align:center;padding:0 160px';
+  card.style.cssText = 'position:fixed;inset:0;z-index:99999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#0d1117;color:#f0f3f6;font:600 42px/1.2 system-ui;text-align:center;padding:0 100px';
   const line = document.createElement('div');
   line.id = 'cap-line';
-  line.style.cssText = 'position:fixed;left:50%;top:28px;transform:translateX(-50%);z-index:99998;max-width:1500px;display:none;padding:18px 30px;border-radius:14px;background:rgba(13,17,23,.88);color:#fff;font:500 34px/1.35 system-ui;text-align:center';
+  line.style.cssText = 'position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:99998;max-width:1000px;display:none;padding:12px 20px;border-radius:10px;background:rgba(13,17,23,.88);color:#fff;font:500 22px/1.35 system-ui;text-align:center';
   document.body.append(card, line);
+  document.documentElement.style.zoom = '1.5';
 `;
 
 const wait = (ms) => new Promise((done) => setTimeout(done, ms));
@@ -35,7 +35,7 @@ async function card(page, title, subtitle = '', ms = 4000) {
       if (s) {
         const b = document.createElement('div');
         b.textContent = s;
-        b.style.cssText = 'font:400 36px/1.4 system-ui;color:#9fb0c3;max-width:1300px';
+        b.style.cssText = 'font:400 24px/1.4 system-ui;color:#9fb0c3;max-width:860px';
         el.append(b);
       }
       el.style.display = 'flex';
@@ -91,14 +91,17 @@ async function main() {
   await caption(page, 'Each repeat narrows 200 objects to a shortlist. It stops as soon as it is sure enough.');
   await replay(page, 'Clean stop', 2500);
   await scrollTo(page, 'What it thinks they saw');
-  await wait(3500);
+  await wait(3000);
+  await caption(page, 'Muse Spark says the answer in one sentence, checked to name nothing outside the calibrated claim.');
+  await scrollTo(page, 'In words');
+  await wait(4500);
 
   await caption(page, "When it isn't sure, it keeps listening and answers with a list instead of a confident wrong guess.");
   await replay(page, 'Unsure', 4000);
 
   await caption(page, 'Here the top pick is wrong, but the answer still contains the truth.');
   await replay(page, 'Hedged, top pick wrong', 2500);
-  await caption(page, 'Muse Spark says the answer in one checked sentence. SAM 3.1 cutouts and Muse Image show it.');
+  await caption(page, 'SAM 3.1 cutouts blend the candidates by likelihood. Muse Image paints the final answer.');
   await scrollTo(page, 'What it thinks they saw');
   await wait(4500);
   await scrollTo(page, 'Reveal');
