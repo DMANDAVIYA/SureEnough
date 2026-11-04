@@ -66,7 +66,23 @@ describe('findingsOf', () => {
     expect(findings.h1).toEqual({ ratio: 0.75, p: 0.042, holds: false, parity: true });
     expect(findings.h2a.cpUpper).toBe(0.051);
     expect(findings.h2a.conservativeness).toBeCloseTo(0.07, 12);
-    expect(findings.h2b).toEqual({ count: 3, p: 0.001 });
+    expect(findings.h2b).toEqual({ count: 3, p: 0.001, holds: true, naiveRisk: null });
+    expect(findings.bestGuessRisk).toBeNull();
+  });
+
+  it('averages the naive and best-guess error over people when the export has them', () => {
+    const withBaselines = {
+      ...results,
+      holm: { H1: false, H2b: false },
+      per_subject: {
+        '1': summaryOf({ naive_pop_risk: 0.2, uncalibrated_risk: 0.6 }),
+        '2': summaryOf({ naive_pop_risk: 0.22, uncalibrated_risk: 0.5 }),
+      },
+    };
+    const findings = findingsOf(withBaselines);
+    expect(findings.h2b.holds).toBe(false);
+    expect(findings.h2b.naiveRisk).toBeCloseTo(0.21, 12);
+    expect(findings.bestGuessRisk).toBeCloseTo(0.55, 12);
   });
 
   it('calls H1 efficient only when Holm keeps it, and drops parity when SureEnough needs clearly more repeats', () => {

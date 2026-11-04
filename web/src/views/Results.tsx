@@ -60,7 +60,7 @@ export default function Results() {
     );
   }, [tables, splits, alpha, risks, manifest.delta]);
   const rows = risks?.map((risk, k) => ({ label: `Person ${manifest.subjects[k]}`, ...risk }));
-  const { h1, h2a, h2b, peVsClip: pe } = useMemo(() => findingsOf(manifest.results), [manifest]);
+  const { h1, h2a, h2b, bestGuessRisk: bestGuess, peVsClip: pe } = useMemo(() => findingsOf(manifest.results), [manifest]);
 
   return (
     <div className="results">
@@ -104,13 +104,22 @@ export default function Results() {
         <ul>
           <li>Delivered error sat {inTen(h2a.conservativeness)} under the promise on average.</li>
           <li>
-            Guarantee check: over 1,000 redrawn calibration sets per person, the promise failed in at most{' '}
-            {percent(h2a.cpUpper)} of them for any person (95% upper bound). It is allowed to fail in {percent(manifest.delta)}.
+            Guarantee check: over 1,000 redrawn calibration sets per person, the promise failed in{' '}
+            {h2a.cpUpper < 0.01 ? 'less than 1%' : `at most ${percent(h2a.cpUpper)}`} of them for any person (95% upper
+            bound). It is allowed to fail in {percent(manifest.delta)}.
           </li>
           <li>
-            The naive repeated look broke the promise for {h2b.count} of {manifest.subjects.length} people (sign test p{' '}
-            {pValue(h2b.p)}).
+            The naive repeated look went over the promise for {h2b.count} of {manifest.subjects.length} people
+            {h2b.naiveRisk === null ? '' : `, averaging ${inTen(h2b.naiveRisk)} wrong against a promise of ${outOfTen(manifest.alpha)} in 10`}{' '}
+            (sign test p {pValue(h2b.p)}
+            {h2b.holds ? '' : ', not significant after Holm correction'}).
           </li>
+          {bestGuess !== null && (
+            <li>
+              Naming only the decoder's top pick, stopping early only at 80% confidence, missed {percent(bestGuess)} of the
+              time.
+            </li>
+          )}
           <li>
             For the median person, SureEnough used {h1.ratio.toFixed(2)}× the repeats of the best fixed rule at the same
             answer size
