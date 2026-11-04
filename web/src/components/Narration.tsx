@@ -19,7 +19,10 @@ export default function Narration({ example, stopped, narratedSubjects }: Props)
           <footer>Muse Spark, restating the claim</footer>
         </blockquote>
       )}
-      {done && !example.narration && (
+      {done && example.narration_rejected && (
+        <p className="panel-note">Muse Spark's sentence did not pass the faithfulness check, so only the calibrated claim is shown.</p>
+      )}
+      {done && !example.narration && !example.narration_rejected && (
         <p className="panel-note">Muse Spark narration covers people {narratedSubjects.join(' and ')} only.</p>
       )}
       {done && (
