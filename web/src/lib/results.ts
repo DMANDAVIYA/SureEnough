@@ -18,7 +18,8 @@ export interface RaceLanes {
 export interface Findings {
   h1: { ratio: number; p: number; holds: boolean; parity: boolean };
   h2a: { cpUpper: number; conservativeness: number };
-  h2b: { count: number; p: number };
+  h2b: { count: number; p: number; holds: boolean; naiveRisk: number | null };
+  bestGuessRisk: number | null;
   peVsClip: { pe: number; clip: number } | null;
 }
 
@@ -27,6 +28,9 @@ const median = (values: number[]): number => {
   const middle = Math.floor(sorted.length / 2);
   return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
 };
+
+const meanOf = (people: SubjectSummary[], key: 'naive_pop_risk' | 'uncalibrated_risk'): number | null =>
+  people.every((s) => s[key] !== undefined) ? mean(people.map((s) => s[key]!)) : null;
 
 export const subjectSummary = (results: Results, subject: number): SubjectSummary | undefined =>
   results.per_subject[String(subject)];
@@ -49,7 +53,8 @@ export function findingsOf(results: Results): Findings {
       cpUpper: Math.max(...people.map((s) => s.h2a.cp_upper)),
       conservativeness: mean(people.map((s) => s.conservativeness)),
     },
-    h2b: { count: results.h2b_count, p: results.pvalues.H2b },
+    h2b: { count: results.h2b_count, p: results.pvalues.H2b, holds: results.holm.H2b, naiveRisk: meanOf(people, 'naive_pop_risk') },
+    bestGuessRisk: meanOf(people, 'uncalibrated_risk'),
     peVsClip: results.pe_vs_clip ?? null,
   };
 }

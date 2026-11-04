@@ -33,6 +33,8 @@ export interface SubjectSummary {
   h1_ratio: number;
   h2a: { cp_upper: number };
   outcome_mix: OutcomeMix;
+  naive_pop_risk?: number;
+  uncalibrated_risk?: number;
 }
 
 export interface Results {
