@@ -1,8 +1,10 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it } from 'vitest';
+import type { Example } from '../data/schema';
 import Badge from './Badge';
 import Footer from './Footer';
 import Header from './Header';
+import Narration from './Narration';
 import Reveal from './Reveal';
 
 it('header shows the hook and the verbatim replay label', () => {
@@ -33,4 +35,17 @@ it('reveal shows the verbatim licence caption', () => {
   expect(renderToStaticMarkup(<Reveal concept={concept} hit />)).toContain(
     'A different photo of the same thing. The real stimulus can&#x27;t be shown (licence).',
   );
+});
+
+const spoken = (narration: string | null, narration_rejected?: boolean) =>
+  ({ claim: { kind: 'list', text: "It's one of these 14.", category: null }, narration, narration_rejected, pe_guess: 'wheel' }) as unknown as Example;
+
+it('narration credits Muse Spark only for a sentence that passed the faithfulness check', () => {
+  const kept = renderToStaticMarkup(<Narration example={spoken('You saw a bike or a wheel.')} stopped narratedSubjects={[6]} />);
+  expect(kept).toContain('You saw a bike or a wheel.');
+  expect(kept).toContain('Muse Spark, restating the claim');
+  const rejected = renderToStaticMarkup(<Narration example={spoken(null, true)} stopped narratedSubjects={[6]} />);
+  expect(rejected).not.toContain('Muse Spark, restating the claim');
+  expect(rejected).not.toContain('covers people');
+  expect(rejected).toContain('sentence did not pass the faithfulness check');
 });

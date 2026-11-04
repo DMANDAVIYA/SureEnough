@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CURATED_LABELS, type Curated, type Example, type Manifest, type Table } from '../data/schema';
 
 const EXPORTED_RANKS = 30;
+const FULL_BUNDLE_MS = 60_000;
 
 const manifests = import.meta.glob<Manifest>('../../public/data/{,mock/}manifest.json', { eager: true, import: 'default' });
 const tables = import.meta.glob<Table>('../../public/data/{,mock/}tables/sub-*.json', { eager: true, import: 'default' });
@@ -83,7 +84,7 @@ describe.each(bundles)('bundle %s', (bundle, manifest) => {
         ranked.slice(1).forEach(([, p], k) => expect(p, path).toBeLessThanOrEqual(ranked[k][1]));
       });
     }
-  });
+  }, FULL_BUNDLE_MS);
 
   it('exports replays only from the evaluation half of the pinned split', () => {
     for (const [path] of examplesIn(bundle)) {

@@ -94,6 +94,7 @@ export interface Example {
   eeg: number[][];
   claim: Claim;
   narration: string | null;
+  narration_rejected?: boolean;
   provenance: { spark?: ApiExchange | null; sam?: ApiExchange | null } | null;
   pe_guess: string;
   impression: string | null;
